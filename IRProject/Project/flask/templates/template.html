@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Query Processor</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>Query Processor</h1>
+        <p>This application processes queries, performs spelling correction, query expansion, and retrieves relevant results from a dataset.</p>
+        <form id="queryForm">
+            <div class="form-group">
+                <label for="query">Enter your query:</label>
+                <input type="text" class="form-control" id="query" name="query" required>
+            </div>
+            <div class="form-group">
+                <label for="k">Enter the number of results to retrieve (k):</label>
+                <input type="number" class="form-control" id="k" name="k" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+        <div id="results" class="mt-4"></div>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+        $(document).ready(function(){
+            $('#queryForm').submit(function(event){
+                event.preventDefault();
+                var formData = {
+                    'query': $('#query').val(),
+                    'k': $('#k').val()
+                };
+                $.ajax({
+                    type: 'POST',
+                    url: '/query',
+                    contentType: 'application/json',
+                    data: JSON.stringify(formData),
+                    success: function(response){
+                        $('#results').html('');
+                        for(var i=0; i<response.results.length; i++){
+                            var result = response.results[i];
+                            $('#results').append('<p><strong>' + result.word + '</strong>: ' + result.definition + '</p>');
+                        }
+                        $('#results').append('<p><strong>Corrected Query</strong>: ' + response.corrected_query + '</p>');
+                        $('#results').append('<p><strong>Expanded Query</strong>: ' + response.expanded_query + '</p>');
+                    },
+                    error: function(xhr, status, error){
+                        var errorMessage = xhr.responseJSON.error;
+                        $('#results').html('<div class="alert alert-danger">' + errorMessage + '</div>');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
